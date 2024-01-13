@@ -1,0 +1,7 @@
+Django
+djangorestframework
+django-cors-headers
+djoser
+drf-yasg
+setuptools
+djangorestframework-simplejwt
