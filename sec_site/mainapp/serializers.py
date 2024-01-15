@@ -6,7 +6,6 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer, TokenOb
 from .models import CustomSession
 
 
-
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(style={'input_type': 'password'}, write_only=True)
 
