@@ -6,27 +6,18 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-class TestTokenCreate(APITestCase):
-    def setUp(self):
-        self.url = reverse('mainapp:token_create')
-
-    def test_token_create(self):
-        data = {"email": "user1@mail.ru", "password": "123"}
-        User.objects.create(email=data.get('email'), password=make_password(data.get('password')))
-        response = self.client.post(self.url, data=data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
+# Тестирование создания юзера (регистрации)
 class TestRegister(APITestCase):
     def setUp(self):
-        self.url = reverse('mainapp:register')
+        self.url = "/api/v1/auth/users/"
 
     def test_register(self):
         data = {"email": "user1@mail.ru", "password": "Qwerty123!"}
         response = self.client.post(self.url, data=data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
+# Тестирование получения информации о себе
 class TestGetMe(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(email="user1@mail.ru", password="Qwerty123!")
