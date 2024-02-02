@@ -5,11 +5,10 @@ import django.contrib.auth.password_validation as validators
 from django.contrib.auth import get_user_model
 User = get_user_model()
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
-from .models import ConfirmLogin
 from django.conf import settings as conf_settings
 from random import randrange
 from django.core.mail import EmailMessage
-from .models import CustomSession
+from .models import *
 
 
 # Создание (регистрация) юзера
@@ -25,10 +24,79 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return data
 
 
+# Отображение только базовой информации
+class UserAuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'last_name', 'first_name']
+
+
 # Отображение информации о юзере
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
+        fields = "__all__"
+
+
+# Отображение списка книг (без содержания)
+class BooksListSerializer(serializers.ModelSerializer):
+    authors = UserAuthorSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Book
+        fields = ['id', 'title', 'description', 'authors']
+
+
+# Отображение всей информации о книге
+class BookDetailSerializer(serializers.ModelSerializer):
+    authors = UserAuthorSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Book
+        fields = "__all__"
+
+
+# Создание книги
+class BookCreateSerializer(serializers.ModelSerializer):
+    authors = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
+
+    class Meta:
+        model = Book
+        fields = "__all__"
+
+
+class PermissonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomPermission
+        fields = "__all__"
+
+
+# Отображение ролей
+class RoleListSerializer(serializers.ModelSerializer):
+    permissions = PermissonSerializer(read_only=True, many=True)
+    users = UserAuthorSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = CustomRole
+        fields = "__all__"
+
+
+# Создание роли
+class RoleCreateSerializer(serializers.ModelSerializer):
+    users = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
+    permissions = serializers.PrimaryKeyRelatedField(queryset=CustomPermission.objects.all(), many=True)
+
+    class Meta:
+        model = CustomRole
+        fields = "__all__"
+
+
+# Создание книги
+class BookCreateSerializer(serializers.ModelSerializer):
+    authors = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
+
+    class Meta:
+        model = Book
         fields = "__all__"
 
 
@@ -75,16 +143,36 @@ class CustomTokenCreateSerializer(TokenObtainPairSerializer):
 
         ConfirmLogin.objects.create(user=user, code=new_code, access=data['access'], refresh=data['refresh'])
 
-        try:
-            theme = f'Авторизация на сайте'  # тема письма
-            mail_content = f"Ваш код: {new_code}"  # содержание
-            who = user.email  # кому
-            mail = EmailMessage(theme, mail_content, conf_settings.EMAIL_HOST_USER, [who])
-            mail.send()
-            return {"message": "Вам на почту был отправлен код"}
+        # Обход двухфакторки. Всё, что ниже до отправки почты - удалить
 
-        except:
-            return {"error": "Не получилось отправить код авторизации на почту"}
+        # -----------------------------------------------------------------
+        confirm = ConfirmLogin.objects.get(user=user, code=new_code)
+        access = confirm.access
+        refresh = confirm.refresh
+        confirm.delete()
+
+        sessions = CustomSession.objects.all()
+        for session in sessions:
+            try:
+                UntypedToken(session.token)
+            except:
+                session.delete()
+
+        # создаю новую сессию
+        CustomSession.objects.create(user=user, token=refresh)
+        return ({"access": access, "refresh": refresh})
+        # -----------------------------------------------------------------
+
+        # try:
+        #     theme = f'Авторизация на сайте'  # тема письма
+        #     mail_content = f"Ваш код: {new_code}"  # содержание
+        #     who = user.email  # кому
+        #     mail = EmailMessage(theme, mail_content, conf_settings.EMAIL_HOST_USER, [who])
+        #     mail.send()
+        #     return {"message": "Вам на почту был отправлен код"}
+        #
+        # except:
+        #     return {"error": "Не получилось отправить код авторизации на почту"}
 
 
 # Кастомное обновление токенов

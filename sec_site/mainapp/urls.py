@@ -14,4 +14,13 @@ urlpatterns = [
     path('auth/logout/all/', LogoutAllView.as_view()),
     path('auth/confirm_login/', ConfirmLoginView.as_view()),
     path('auth/get_sessions/', GetSessionsView.as_view()),
+    path('books_list/', GetBooksListView.as_view()),
+    path('book/<int:pk>/', ReadBookView.as_view()),
+    path('book_create/', CreateBookView.as_view()),
+    path('book_change/<int:pk>/', ChangeBookView.as_view()),
+    path('role/', RoleView.as_view()),
+    path('role/<int:pk>/', ChangeRoleView.as_view()),
+    path('role_users/', RoleUserView.as_view()),
+    path('permission/', PermissionView.as_view()),
+    path('permission/<int:pk>/', ChangePermissionView.as_view()),
 ]
