@@ -142,3 +142,12 @@ class Book(models.Model):
 
     def __str__(self):
         return f'{self.title}'
+    
+
+class CustomLog(models.Model):
+    method = models.CharField(max_length = 1000)
+    date = models.DateTimeField(auto_now_add=True, null=False)
+    objects = CustomUserManager()
+
+    def __str__(self):
+        return f'{self.method}'

@@ -5,3 +5,5 @@ djoser
 drf-yasg
 setuptools
 djangorestframework-simplejwt
+redis
+celery

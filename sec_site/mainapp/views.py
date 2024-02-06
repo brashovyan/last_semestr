@@ -9,10 +9,12 @@ from django.conf import settings as conf_settings
 User = get_user_model()
 from datetime import datetime
 from .models import *
-from django.db.models.signals import post_save, post_delete, pre_save
+from django.db.models.signals import post_save
+from django.core.signals import request_started, request_finished
 from django.dispatch import receiver
 from .permissions import *
 from django.shortcuts import get_object_or_404
+from .tasks import *
 
 
 # этот метод вызывается после регистрации юзера
@@ -26,6 +28,13 @@ def create_profile(sender, instance, created, **kwargs):
         except:
             pass
 
+
+# этот метод вызывается после регистрации юзера
+@receiver(request_started)
+def create_profile(sender, environ, **kwargs):
+    method = f'{environ["REQUEST_METHOD"]} {environ['PATH_INFO']}'
+    CustomLog.objects.create(method = method)
+    
 
 # Удаление старых сессий
 def DeleteOldSessions():
@@ -161,6 +170,7 @@ class GetSessionsView(APIView):
         return Response(sessions)
 
 
+
 # Получить список книг
 class GetBooksListView(APIView):
     # Это доступно вообще всем (даже неавторизованным)
@@ -168,6 +178,7 @@ class GetBooksListView(APIView):
 
     def get(self, request, *args, **kwargs):
         books = Book.objects.all()
+        # print(sample_task.delay())
         return Response(BooksListSerializer(books, many=True).data)
 
 
