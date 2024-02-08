@@ -185,9 +185,16 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Moscow'
 
+# Промежуток времени (секунды)
+CELERY_BEAT_TIMER = 10
 CELERY_BEAT_SCHEDULE = {
-    "sample_task": {
-        "task": "mainapp.tasks.sample_task",
-        "schedule": 10,
+    "report_task": {
+        "task": "mainapp.tasks.report_task",
+        "schedule": CELERY_BEAT_TIMER,
+    },
+
+    "parsing_task": {
+        "task": "mainapp.tasks.parsing_task",
+        "schedule": CELERY_BEAT_TIMER,
     },
 }

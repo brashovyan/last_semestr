@@ -29,7 +29,7 @@ def create_profile(sender, instance, created, **kwargs):
             pass
 
 
-# этот метод вызывается после регистрации юзера
+# Логирование
 @receiver(request_started)
 def create_profile(sender, environ, **kwargs):
     method = f'{environ["REQUEST_METHOD"]} {environ['PATH_INFO']}'

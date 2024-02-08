@@ -150,4 +150,4 @@ class CustomLog(models.Model):
     objects = CustomUserManager()
 
     def __str__(self):
-        return f'{self.method}'
+        return f'{self.date}'
